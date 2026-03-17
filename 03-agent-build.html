@@ -873,25 +873,55 @@ html{scroll-behavior:smooth;}
 <a href="all-in-one.html">전체보기</a>
 </div></div>
 <div class="page-wrap">
-<div class="page-title"><h1>AI Agent 제작 완전 가이드</h1><p>GitHub 업로드용 시작 페이지</p></div>
-
+<div class="page-title"><h1>Part 3. Agent 구성</h1><p>역할 설정, 프롬프트, 전체 구현 코드를 정리합니다.</p></div>
+<div class="section-alt" id="agent">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-num">05 — Agent 설정</div>
+<div class="divider"></div>
+<section class="section" id="prompt">
+  <div class="section-header reveal">
+    <div class="section-num">06 — 프롬프트 강화</div>
+<div class="divider"></div>
+<div class="section-alt" id="code">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-num">07 — 전체 코드</div>
+<div class="divider"></div>
 <section class="section">
-  <div class="section-header">
-    <div class="section-num">GitHub Pages 용 분할본</div>
-    <h2 class="section-title">큰 단일 HTML 대신 <span class="t-indigo">여러 페이지</span>로 나눈 버전</h2>
-    <p class="section-desc">스크롤이 길어도 내용이 잘리지 않도록, 애니메이션 없이 바로 보이게 정리했다.</p>
-  </div>
-  <div class="card-grid cols-3">
-    <a class="card" href="01-foundation.html" style="text-decoration:none;color:inherit;"><div class="card-kicker ck-indigo">Part 1</div><div class="card-title">기본 개념</div><div class="card-desc">전체 파이프라인, 포함관계, 임베딩 설명</div></a>
-    <a class="card" href="02-retrieval.html" style="text-decoration:none;color:inherit;"><div class="card-kicker ck-rose">Part 2</div><div class="card-title">검색 설계</div><div class="card-desc">Chunk, Chunk Size, Top-K 설명</div></a>
-    <a class="card" href="03-agent-build.html" style="text-decoration:none;color:inherit;"><div class="card-kicker ck-sky">Part 3</div><div class="card-title">Agent 구성</div><div class="card-desc">역할 설정, 프롬프트, 전체 코드</div></a>
-  </div>
-  <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap;">
-    <a class="btn btn-primary" href="all-in-one.html">전체 한 페이지 보기</a>
-    <a class="btn btn-ghost" href="agent-complete-guide-static.html">원본 레이아웃 유지 + 정적 버전</a>
+  <div class="summary-strip reveal">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">전체 요약</div>
+    <h2 style="font-size:clamp(22px,4vw,34px);font-weight:900;color:var(--text);margin-bottom:8px;">Dataset → Agent 한 줄로 정리</h2>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:28px;">5단계 파이프라인을 기억하자</p>
+
+    <div class="sum-pipeline">
+      <div class="sum-step ss-i">📂 Dataset</div>
+      <span class="sum-arrow">→</span>
+      <div class="sum-step ss-r">✂️ Chunk<br><span style="font-size:10px;font-family:var(--mono);">size & overlap</span></div>
+      <span class="sum-arrow">→</span>
+      <div class="sum-step ss-t">🔢 Embedding<br><span style="font-size:10px;font-family:var(--mono);">벡터 변환</span></div>
+      <span class="sum-arrow">→</span>
+      <div class="sum-step ss-a">🗄️ Knowledge<br><span style="font-size:10px;font-family:var(--mono);">Vector DB</span></div>
+      <span class="sum-arrow">→</span>
+      <div class="sum-step ss-s">🤖 Agent<br><span style="font-size:10px;font-family:var(--mono);">Role + Prompt + Top-K</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px;text-align:left;">
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px;">CHUNK SIZE</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;">작으면 정밀↑ 문맥↓<br>크면 문맥↑ 정밀↓<br><strong>512~1024</strong>가 기본값</div>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px;">TOP-K</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;">작으면 빠름 문맥↓<br>크면 풍부 노이즈↑<br><strong>k=3</strong>이 일반 기본값</div>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:6px;">SYSTEM PROMPT</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;">역할 + 제약 + 형식<br>RAG 결과 삽입 위치<br>Fallback 처리 포함</div>
+      </div>
+    </div>
   </div>
 </section>
-
 <footer>
   AI Agent 제작 완전 가이드 &nbsp;·&nbsp; Dataset → Chunk → Embedding → Knowledge → Agent
 </footer>
