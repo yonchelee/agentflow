@@ -1,0 +1,82 @@
+name: Refresh AI model routing
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh model registry and routing
+        run: python scripts/update_ai_policy.py
+
+      - name: Detect changes
+        id: diff
+        shell: bash
+        run: |
+          if git diff --quiet -- .ai AGENTS.md CLAUDE.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate managed files
+        if: steps.diff.outputs.changed == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ("AGENTS.md", "CLAUDE.md"):
+              text = Path(name).read_text(encoding="utf-8")
+              assert text.count("<!-- AUTO-MODEL-ROUTING:START -->") == 1, name
+              assert text.count("<!-- AUTO-MODEL-ROUTING:END -->") == 1, name
+          print("managed markers validated")
+          PY
+
+      - name: Commit refresh branch
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          BRANCH: automation/refresh-ai-model-policy
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add .ai AGENTS.md CLAUDE.md
+          git commit -m "chore: refresh AI model routing"
+          git push --force-with-lease origin "$BRANCH"
+
+      - name: Open or reuse pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: automation/refresh-ai-model-policy
+        shell: bash
+        run: |
+          EXISTING=$(gh pr list --head "$BRANCH" --base "${{ github.event.repository.default_branch }}" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$EXISTING" ]; then
+            gh pr create \
+              --head "$BRANCH" \
+              --base "${{ github.event.repository.default_branch }}" \
+              --title "chore: refresh AI model routing" \
+              --body $'Automated refresh from official OpenAI model documentation.\n\n- Updates the generated model registry and capability-tier routing only.\n- Preserves human-authored text outside managed markers.\n- New/unrouted models are surfaced for review instead of silently replacing stable routes.\n- Preview/experimental models retain stable fallbacks.'
+          else
+            echo "Open refresh PR already exists: #$EXISTING"
+          fi
