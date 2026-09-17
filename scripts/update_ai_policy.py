@@ -31,8 +31,8 @@ SOURCES = [
 ]
 ALLOWED_HOSTS = {"developers.openai.com", "openai.com", "help.openai.com"}
 
-# Known-good capability families. These are fallback seeds, not permanent truth.
-# A route is updated only when the model is still present in official docs.
+# Current verified routes. They are fallback seeds, not permanent truth.
+# Unknown/new models are surfaced for review rather than promoted by version number alone.
 SEED_ROUTES = {
     "FRONTIER": {
         "model": "gpt-6-astra",
@@ -62,7 +62,6 @@ SEED_ROUTES = {
 
 START = "<!-- AUTO-MODEL-ROUTING:START -->"
 END = "<!-- AUTO-MODEL-ROUTING:END -->"
-
 MODEL_ID_RE = re.compile(r"\bgpt-(?:\d+(?:\.\d+)*)(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?\b", re.I)
 
 
@@ -76,7 +75,6 @@ def fetch_text(url: str) -> str:
     )
     with urllib.request.urlopen(req, timeout=25) as response:
         raw = response.read().decode("utf-8", errors="replace")
-    # Sufficient for keyword/model discovery; we intentionally do not execute JS.
     raw = re.sub(r"<script\b[^>]*>.*?</script>", " ", raw, flags=re.I | re.S)
     raw = re.sub(r"<style\b[^>]*>.*?</style>", " ", raw, flags=re.I | re.S)
     text = re.sub(r"<[^>]+>", " ", raw)
@@ -92,83 +90,74 @@ def load_previous() -> dict:
         return {}
 
 
-def discover() -> tuple[set[str], dict[str, list[str]]]:
+def discover() -> tuple[set[str], dict[str, int]]:
     discovered: set[str] = set()
-    source_models: dict[str, list[str]] = {}
+    source_counts: dict[str, int] = {}
     successful_sources = 0
 
     for url in SOURCES:
         try:
             text = fetch_text(url)
-        except Exception as exc:  # network/docs outage must not corrupt routing
+        except Exception as exc:
             print(f"warning: failed to read {url}: {exc}", file=sys.stderr)
             continue
         successful_sources += 1
-        models = sorted({m.lower() for m in MODEL_ID_RE.findall(text)})
-        source_models[url] = models
+        models = {m.lower() for m in MODEL_ID_RE.findall(text)}
+        source_counts[url] = len(models)
         discovered.update(models)
 
     if successful_sources < 2:
         raise RuntimeError(
             f"Only {successful_sources} official sources were reachable; refusing to rewrite routing."
         )
-    return discovered, source_models
+    return discovered, source_counts
 
 
-def build_registry(discovered: set[str], source_models: dict[str, list[str]]) -> dict:
+def build_registry(discovered: set[str], source_counts: dict[str, int]) -> dict:
     previous = load_previous()
     previous_routes = previous.get("routes", {}) if isinstance(previous, dict) else {}
-
     routes: dict[str, dict] = {}
     warnings: list[str] = []
 
     for tier, seed in SEED_ROUTES.items():
         candidate = seed["model"]
         if candidate in discovered:
-            routes[tier] = dict(seed)
-            routes[tier]["status"] = "verified"
+            routes[tier] = {**seed, "status": "verified"}
         elif tier in previous_routes and previous_routes[tier].get("model"):
-            # Do not auto-replace an established route merely because docs changed or parsing failed.
-            routes[tier] = dict(previous_routes[tier])
-            routes[tier]["status"] = "review-required"
+            routes[tier] = {**previous_routes[tier], "status": "review-required"}
             warnings.append(
                 f"{tier}: expected {candidate} was not found in current official model docs; previous route preserved."
             )
         else:
-            routes[tier] = dict(seed)
-            routes[tier]["status"] = "review-required"
+            routes[tier] = {**seed, "status": "review-required"}
             warnings.append(f"{tier}: {candidate} could not be verified; seed retained for manual review.")
 
     routed_models = {route["model"] for route in routes.values()}
-    # Only surface modern families as review candidates; ignore old historical IDs linked in docs.
     review_candidates = sorted(
         m
         for m in discovered
-        if m not in routed_models
-        and re.match(r"^gpt-(?:5\.[3-9]|6(?:\.|-))", m)
+        if m not in routed_models and re.match(r"^gpt-(?:5\.[3-9]|6(?:\.|-))", m)
     )
 
-    # Preserve explicit preview treatment for Spark when it is visible in docs.
-    experimental = []
-    for model in review_candidates:
-        if "spark" in model:
-            experimental.append(
-                {
-                    "model": model,
-                    "channel": "preview-or-specialized",
-                    "stable_route": False,
-                    "fallback_tier": "STANDARD",
-                }
-            )
+    experimental = [
+        {
+            "model": model,
+            "channel": "preview-or-specialized",
+            "stable_route": False,
+            "fallback_tier": "STANDARD",
+        }
+        for model in review_candidates
+        if "spark" in model
+    ]
 
     return {
         "policy_version": 1,
         "sources": SOURCES,
+        "source_model_counts": source_counts,
         "routes": routes,
         "review_candidates": review_candidates,
         "experimental": experimental,
         "warnings": warnings,
-        "source_observations": source_models,
     }
 
 
@@ -244,8 +233,8 @@ def replace_managed_block(path: Path, generated: str) -> None:
 
 
 def main() -> int:
-    discovered, source_models = discover()
-    registry = build_registry(discovered, source_models)
+    discovered, source_counts = discover()
+    registry = build_registry(discovered, source_counts)
     routing = render_routing(registry)
 
     REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -258,10 +247,8 @@ def main() -> int:
         replace_managed_block(doc, routing)
 
     print("AI model routing refreshed from official OpenAI sources.")
-    if registry["warnings"]:
-        print("Warnings require review:")
-        for warning in registry["warnings"]:
-            print(f"- {warning}")
+    for warning in registry["warnings"]:
+        print(f"warning: {warning}", file=sys.stderr)
     return 0
 
 
