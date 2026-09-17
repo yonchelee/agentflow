@@ -1,0 +1,42 @@
+{
+  "experimental": [],
+  "policy_version": 1,
+  "review_candidates": [],
+  "routes": {
+    "DEEP": {
+      "evidence": "complex professional work",
+      "fallback": "FRONTIER",
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "status": "verified"
+    },
+    "FAST": {
+      "evidence": "cost-sensitive, high-volume workloads",
+      "fallback": "STANDARD",
+      "model": "gpt-5.6-luna",
+      "reasoning": "low",
+      "status": "verified"
+    },
+    "FRONTIER": {
+      "evidence": "most capable / hardest end-to-end work",
+      "fallback": "DEEP",
+      "model": "gpt-6-astra",
+      "reasoning": "high",
+      "status": "verified"
+    },
+    "STANDARD": {
+      "evidence": "balances intelligence and cost",
+      "fallback": "DEEP",
+      "model": "gpt-5.6-terra",
+      "reasoning": "medium",
+      "status": "verified"
+    }
+  },
+  "source_model_counts": {},
+  "sources": [
+    "https://developers.openai.com/api/docs/models",
+    "https://developers.openai.com/api/docs/models/all",
+    "https://developers.openai.com/api/docs/guides/latest-model"
+  ],
+  "warnings": []
+}
