@@ -1,0 +1,25 @@
+policy_version = 1
+
+[automation]
+minimum_official_source_quorum = 2
+unknown_model_policy = "observe-and-open-pr; never silently replace a stable route without official evidence"
+
+[tiers.FAST]
+reasoning = "low"
+fallback = "STANDARD"
+keywords = ["fast", "economical", "cost-sensitive", "high-volume", "repetitive tasks", "short edits", "real-time coding"]
+
+[tiers.STANDARD]
+reasoning = "medium"
+fallback = "DEEP"
+keywords = ["balance of speed", "balance of capability", "everyday work", "routine code change", "implementing a feature"]
+
+[tiers.DEEP]
+reasoning = "high"
+fallback = "FRONTIER"
+keywords = ["complex professional", "complex problem", "difficult bug", "strong balance of capability", "flagship model"]
+
+[tiers.FRONTIER]
+reasoning = "high"
+fallback = "DEEP"
+keywords = ["most capable", "hardest end-to-end", "most intelligent", "frontier model"]
