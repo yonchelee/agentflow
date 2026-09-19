@@ -1,7 +1,14 @@
 {
   "experimental": [],
   "policy_version": 1,
-  "review_candidates": [],
+  "review_candidates": [
+    "gpt-5.3",
+    "gpt-5.3-codex",
+    "gpt-5.4",
+    "gpt-5.4-class",
+    "gpt-5.5",
+    "gpt-5.6"
+  ],
   "routes": {
     "DEEP": {
       "evidence": "complex professional work",
@@ -32,7 +39,11 @@
       "status": "verified"
     }
   },
-  "source_model_counts": {},
+  "source_model_counts": {
+    "https://developers.openai.com/api/docs/guides/latest-model": 10,
+    "https://developers.openai.com/api/docs/models": 6,
+    "https://developers.openai.com/api/docs/models/all": 19
+  },
   "sources": [
     "https://developers.openai.com/api/docs/models",
     "https://developers.openai.com/api/docs/models/all",

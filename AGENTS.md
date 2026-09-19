@@ -23,4 +23,15 @@ Human-authored project instructions belong outside the managed block below. The 
 - Parallelize independent subtasks when safe; the parent agent must integrate and verify the result.
 - Preview/experimental models never replace a stable route automatically; keep a stable fallback.
 - Do not infer capability from version numbers alone. Official OpenAI guidance is required for promotion to a stable tier.
+
+### Review candidates
+
+New or unrouted model IDs were observed in official docs. They require review before becoming a stable route:
+
+- `gpt-5.3`
+- `gpt-5.3-codex`
+- `gpt-5.4`
+- `gpt-5.4-class`
+- `gpt-5.5`
+- `gpt-5.6`
 <!-- AUTO-MODEL-ROUTING:END -->
