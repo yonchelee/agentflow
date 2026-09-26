@@ -1,21 +1,30 @@
 {
   "experimental": [],
   "policy_version": 1,
-  "review_candidates": [],
+  "review_candidates": [
+    "gpt-5.3",
+    "gpt-5.3-codex",
+    "gpt-5.4",
+    "gpt-5.4-class",
+    "gpt-5.5",
+    "gpt-5.6",
+    "gpt-6-luna",
+    "gpt-6-sol"
+  ],
   "routes": {
     "DEEP": {
       "evidence": "complex professional work",
       "fallback": "FRONTIER",
       "model": "gpt-5.6-sol",
       "reasoning": "high",
-      "status": "verified"
+      "status": "review-required"
     },
     "FAST": {
       "evidence": "cost-sensitive, high-volume workloads",
       "fallback": "STANDARD",
       "model": "gpt-5.6-luna",
       "reasoning": "low",
-      "status": "verified"
+      "status": "review-required"
     },
     "FRONTIER": {
       "evidence": "most capable / hardest end-to-end work",
@@ -29,14 +38,22 @@
       "fallback": "DEEP",
       "model": "gpt-5.6-terra",
       "reasoning": "medium",
-      "status": "verified"
+      "status": "review-required"
     }
   },
-  "source_model_counts": {},
+  "source_model_counts": {
+    "https://developers.openai.com/api/docs/guides/latest-model": 12,
+    "https://developers.openai.com/api/docs/models": 5,
+    "https://developers.openai.com/api/docs/models/all": 19
+  },
   "sources": [
     "https://developers.openai.com/api/docs/models",
     "https://developers.openai.com/api/docs/models/all",
     "https://developers.openai.com/api/docs/guides/latest-model"
   ],
-  "warnings": []
+  "warnings": [
+    "DEEP: expected gpt-5.6-sol was not found in current official model docs; previous route preserved.",
+    "STANDARD: expected gpt-5.6-terra was not found in current official model docs; previous route preserved.",
+    "FAST: expected gpt-5.6-luna was not found in current official model docs; previous route preserved."
+  ]
 }
